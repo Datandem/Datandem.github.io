@@ -1,0 +1,154 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Datandem API",
+        "description": "Publish, find and access cloud resources using the Datandem API",
+        "version": "0.0.1"
+    },
+    "host": "api.datandem.com",
+    "schemes": [
+        "https"
+    ],
+    "basePath": "/v1",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/s3/buckets/subscriptions": {
+            "get": {
+                "description": "Gets the list of AWS S3 Buckets that the authenticated\nuser's account is subscribed to.\nReturns a list of `Bucket` objects.\n",
+                "tags": [
+                    "S3"
+                ],
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Maximum number of results to return. Default is 20, maximum is 100.",
+                        "type": "integer",
+                        "format": "int32",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset to apply to results list Default is 0.",
+                        "type": "integer",
+                        "format": "int32",
+                        "default": 0,
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "ArrayOfBuckets",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Bucket"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Subscribes the authenticated account to one or more AWS S3 buckets.\n",
+                "tags": [
+                    "S3"
+                ],
+                "parameters": [
+                    {
+                        "name": "buckets",
+                        "description": "Array of Bucket ARN strings",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Bucket"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Bucket": {
+            "type": "object",
+            "properties": {
+                "arn": {
+                    "type": "string",
+                    "description": "The Amazon Resource Name for an AWS S3 Bucket"
+                },
+                "subscribed": {
+                    "type": "boolean",
+                    "description": "Whether the given account is subscribed to the resource"
+                },
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "description": "The record of subscribe and unsubscribe events for the resource",
+                        "properties": {
+                            "action": {
+                                "type": "string",
+                                "description": "The type of action (subscribe or unsubscribe)",
+                                "enum": [
+                                    "subscribe",
+                                    "unsubscribe"
+                                ]
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "The date and time of the event in ISO 8601 format"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

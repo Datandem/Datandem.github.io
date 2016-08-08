@@ -1,0 +1,122 @@
+swagger: '2.0'
+info:
+  title: Datandem API
+  description: Publish, find and access cloud resources using the Datandem API
+  version: "0.0.1"
+# the domain of the service
+host: api.datandem.com
+# array of all schemes that the API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /v1
+produces:
+# array of all supported response formats
+  - application/json
+# path endpoints
+paths:
+  /s3/buckets/subscriptions:
+    # This is a HTTP operation
+    get:
+      # Describe this verb here (supports markdown)
+      description: |
+        Gets the list of AWS S3 Buckets that the authenticated
+        user's account is subscribed to.
+        Returns a list of `Bucket` objects.
+      tags:
+        - S3
+      # This is array of GET operation parameters:
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return. Default is 20, maximum is 100.
+          type: integer
+          format: int32
+          default: 20
+          minimum: 1
+          maximum: 100
+        - name: offset
+          in: query
+          description: Offset to apply to results list Default is 0.
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
+          # A schema describing your response object.
+          # Use JSON Schema format
+          schema:
+            title: ArrayOfBuckets
+            type: array
+            items:
+              $ref: '#/definitions/Bucket'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: |
+        Subscribes the authenticated account to one or more AWS S3 buckets.
+      tags:
+        - S3
+      parameters:
+        - name: buckets
+          description: Array of Bucket ARN strings
+          required: true
+          in: body
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Bucket'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  
+definitions:
+  Bucket:
+    type: object
+    properties:
+      arn:
+        type: string
+        description: The Amazon Resource Name for an AWS S3 Bucket
+      subscribed:
+        type: boolean
+        description: Whether the given account is subscribed to the resource
+      history:
+        type: array
+        items:
+          type: object
+          description: The record of subscribe and unsubscribe events for the resource
+          properties:
+            action:
+              type: string
+              description: The type of action (subscribe or unsubscribe)
+              enum:
+              - subscribe
+              - unsubscribe
+            timestamp:
+              type: string
+              format: date-time
+              description: The date and time of the event in ISO 8601 format
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
