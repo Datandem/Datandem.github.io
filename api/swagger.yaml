@@ -15,7 +15,7 @@ produces:
   - application/json
 # path endpoints
 paths:
-  /s3/buckets/subscriptions:
+  /s3/buckets:
     # This is a HTTP operation
     get:
       # Describe this verb here (supports markdown)

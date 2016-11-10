@@ -13,8 +13,133 @@
     "produces": [
         "application/json"
     ],
+    "parameters": {
+        "bucketParam": {
+            "name": "bucket",
+            "type": "string",
+            "in": "path",
+            "description": "AWS bucket name",
+            "required": true
+        },
+        "datasetParam": {
+            "name": "dataset",
+            "type": "string",
+            "format": "uuid",
+            "in": "path",
+            "description": "Dataset UUID",
+            "required": true
+        }
+    },
     "paths": {
-        "/s3/buckets/subscriptions": {
+        "/datasets/{dataset}": {
+            "get": {
+                "description": "Gets details of the dataset with a given UUID\n",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/datasetParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dataset",
+                        "schema": {
+                            "$ref": "#/definitions/Dataset"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/s3/buckets": {
+            "get": {
+                "description": "Gets the list of AWS S3 Buckets that the authenticated\nuser's account has registered.\nReturns a list of `Bucket` objects.\n",
+                "tags": [
+                    "S3"
+                ],
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "'Maximum number of results to return. Default is 20, maximum is 100.'\n",
+                        "type": "integer",
+                        "format": "int32",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset to apply to results list Default is 0.",
+                        "type": "integer",
+                        "format": "int32",
+                        "default": 0,
+                        "minimum": 0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "ArrayOfBuckets",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Bucket"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Registers one or more AWS S3 buckets for a given dataset. \n",
+                "tags": [
+                    "S3"
+                ],
+                "parameters": [
+                    {
+                        "name": "buckets",
+                        "description": "Array of Bucket ARN strings",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Bucket"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/s3/buckets/subscribed": {
             "get": {
                 "description": "Gets the list of AWS S3 Buckets that the authenticated\nuser's account is subscribed to.\nReturns a list of `Bucket` objects.\n",
                 "tags": [
@@ -24,7 +149,7 @@
                     {
                         "name": "limit",
                         "in": "query",
-                        "description": "Maximum number of results to return. Default is 20, maximum is 100.",
+                        "description": "'Maximum number of results to return. Default is 20, maximum is 100.'\n",
                         "type": "integer",
                         "format": "int32",
                         "default": 20,
@@ -74,7 +199,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "AWS S3 Bucket ARN"
                             }
                         }
                     }
@@ -97,15 +223,76 @@
                     }
                 }
             }
+        },
+        "/s3/buckets/{bucket}": {
+            "get": {
+                "description": "Gets the details of an AWS S3 Bucket.\nReturns a `Bucket` object.\n",
+                "tags": [
+                    "S3"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/bucketParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/Bucket"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "Dataset": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "sourceURL": {
+                    "type": "string",
+                    "format": "url"
+                },
+                "canonicalURL": {
+                    "type": "string",
+                    "format": "url"
+                },
+                "bucketARNs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "AWS S3 Bucket ARN"
+                    }
+                }
+            }
+        },
         "Bucket": {
             "type": "object",
             "properties": {
                 "arn": {
                     "type": "string",
                     "description": "The Amazon Resource Name for an AWS S3 Bucket"
+                },
+                "datasetURL": {
+                    "type": "string",
+                    "format": "url"
                 },
                 "subscribed": {
                     "type": "boolean",
